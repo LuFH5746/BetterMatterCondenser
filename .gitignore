@@ -1,0 +1,11 @@
+# Ignore everything in the root
+/*
+
+# Except this .gitignore itself
+!/.gitignore
+
+# Except project directory
+!/project/
+
+# Local files inside project
+project/CLAUDE.md
