@@ -1,6 +1,7 @@
 package com.bettermolecularassembler.screen;
 
 import com.bettermolecularassembler.BetterMolecularAssemblerMod;
+import com.bettermolecularassembler.block.BetterMABlockEntity;
 import com.bettermolecularassembler.block.RedstoneMode;
 import com.bettermolecularassembler.menu.BetterMAMenu;
 import com.bettermolecularassembler.network.SetPriorityPacket;
@@ -21,6 +22,8 @@ public class BetterMAScreen extends AbstractContainerScreen<BetterMAMenu> {
 
     private EditBox priorityField;
     private Button redstoneButton;
+    private Button topButton;
+    private Button bottomButton;
 
     public BetterMAScreen(BetterMAMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -43,18 +46,41 @@ public class BetterMAScreen extends AbstractContainerScreen<BetterMAMenu> {
         this.priorityField.setResponder(this::onPriorityChanged);
         this.addRenderableWidget(this.priorityField);
 
+        this.topButton = Button.builder(Component.literal("T"), b -> this.setPriority(BetterMABlockEntity.PRIORITY_MAX))
+                .bounds(left + 49, top + 79, 12, 12).build();
+        this.addRenderableWidget(this.topButton);
+
+        this.bottomButton = Button.builder(Component.literal("B"), b -> this.setPriority(BetterMABlockEntity.PRIORITY_MIN))
+                .bounds(left + 63, top + 79, 12, 12).build();
+        this.addRenderableWidget(this.bottomButton);
+
         this.redstoneButton = Button.builder(
-                Component.literal(this.menu.getBlockEntity().getRedstoneMode().getSerializedName().substring(0, 1).toUpperCase()),
+                Component.literal(getRedstoneModeLabel(this.menu.getBlockEntity().getRedstoneMode())),
                 b -> this.cycleRedstoneMode()
         ).bounds(left + 118, top + 79, 50, 12).build();
         this.addRenderableWidget(this.redstoneButton);
     }
 
+    private void setPriority(int value) {
+        this.menu.getBlockEntity().setPriority(value);
+        this.priorityField.setValue(String.valueOf(value));
+        net.neoforged.neoforge.network.PacketDistributor.sendToServer(
+                new SetPriorityPacket(this.menu.getBlockEntity().getBlockPos(), value)
+        );
+    }
+
+    private static String getRedstoneModeLabel(RedstoneMode mode) {
+        return switch (mode) {
+            case IGNORE -> "OFF";
+            case NORMAL -> "ON";
+            case INVERTED -> "INV";
+        };
+    }
+
     private void onPriorityChanged(String value) {
         try {
-            int priority = value.isEmpty() ? 0 : Integer.parseInt(value);
+            int priority = value.isEmpty() || value.equals("-") ? 0 : Integer.parseInt(value);
             this.menu.getBlockEntity().setPriority(priority);
-            // Send packet to server
             net.neoforged.neoforge.network.PacketDistributor.sendToServer(
                     new SetPriorityPacket(this.menu.getBlockEntity().getBlockPos(), priority)
             );
@@ -65,8 +91,7 @@ public class BetterMAScreen extends AbstractContainerScreen<BetterMAMenu> {
     private void cycleRedstoneMode() {
         RedstoneMode next = this.menu.getBlockEntity().getRedstoneMode().next();
         this.menu.getBlockEntity().setRedstoneMode(next);
-        this.redstoneButton.setMessage(Component.literal(next.getSerializedName().substring(0, 1).toUpperCase()));
-        // Send packet to server
+        this.redstoneButton.setMessage(Component.literal(getRedstoneModeLabel(next)));
         net.neoforged.neoforge.network.PacketDistributor.sendToServer(
                 new SetRedstoneModePacket(this.menu.getBlockEntity().getBlockPos(), next)
         );
@@ -101,7 +126,7 @@ public class BetterMAScreen extends AbstractContainerScreen<BetterMAMenu> {
     protected void containerTick() {
         super.containerTick();
         this.redstoneButton.setMessage(
-                Component.literal(this.menu.getBlockEntity().getRedstoneMode().getSerializedName().substring(0, 1).toUpperCase())
+                Component.literal(getRedstoneModeLabel(this.menu.getBlockEntity().getRedstoneMode()))
         );
     }
 }

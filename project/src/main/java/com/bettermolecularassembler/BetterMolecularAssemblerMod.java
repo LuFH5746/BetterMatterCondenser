@@ -8,11 +8,12 @@ import com.bettermolecularassembler.network.SetRedstoneModePacket;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -51,11 +52,13 @@ public class BetterMolecularAssemblerMod {
             () -> IMenuTypeExtension.create(BetterMAMenu::new)
     );
 
-    public BetterMolecularAssemblerMod(IEventBus modEventBus) {
+    public BetterMolecularAssemblerMod(IEventBus modEventBus, ModContainer modContainer) {
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         BLOCK_ENTITY_TYPES.register(modEventBus);
         MENU_TYPES.register(modEventBus);
+
+        modContainer.registerConfig(ModConfig.Type.COMMON, BetterMAConfig.SPEC);
 
         modEventBus.addListener(BetterMolecularAssemblerMod::registerPackets);
     }

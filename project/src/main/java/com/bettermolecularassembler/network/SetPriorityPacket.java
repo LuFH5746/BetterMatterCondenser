@@ -1,6 +1,7 @@
 package com.bettermolecularassembler.network;
 
 import com.bettermolecularassembler.BetterMolecularAssemblerMod;
+import com.bettermolecularassembler.block.BetterMABlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -31,8 +32,9 @@ public record SetPriorityPacket(BlockPos pos, int priority) implements CustomPac
     public static void handle(SetPriorityPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer serverPlayer) {
+                if (serverPlayer.distanceToSqr(packet.pos.getCenter()) > 64) return;
                 BlockEntity be = serverPlayer.serverLevel().getBlockEntity(packet.pos);
-                if (be instanceof com.bettermolecularassembler.block.BetterMABlockEntity ma) {
+                if (be instanceof BetterMABlockEntity ma) {
                     ma.setPriority(packet.priority);
                 }
             }

@@ -9,6 +9,7 @@ import appeng.api.stacks.KeyCounter;
 import appeng.api.util.AECableType;
 import appeng.blockentity.grid.AENetworkedBlockEntity;
 import appeng.me.helpers.MachineSource;
+import com.bettermolecularassembler.BetterMAConfig;
 import com.bettermolecularassembler.BetterMolecularAssemblerMod;
 import com.bettermolecularassembler.menu.BetterMAMenu;
 import net.minecraft.core.BlockPos;
@@ -28,11 +29,17 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraftingMachine, MenuProvider {
     public static final int INVENTORY_SIZE = 18;
     public static final int PATTERN_SLOTS = 3;
+    private static final int INPUT_SLOTS = INVENTORY_SIZE / 2; // 0-8
+    private static final int OUTPUT_SLOTS_START = INVENTORY_SIZE / 2; // 9-17
+    private static final int CRAFTING_TIME = 40;
+    public static final int PRIORITY_MIN = -999;
+    public static final int PRIORITY_MAX = 999;
 
     private final SimpleContainer inventory = new SimpleContainer(INVENTORY_SIZE + PATTERN_SLOTS) {
         @Override
@@ -55,14 +62,13 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
 
     public BetterMABlockEntity(BlockPos pos, BlockState state) {
         super(BetterMolecularAssemblerMod.BETTER_MOLECULAR_ASSEMBLER_ENTITY.get(), pos, state);
-        this.placementTime = System.currentTimeMillis();
     }
 
     @Override
     public void setLevel(Level level) {
         super.setLevel(level);
-        if (this.placementTime == 0) {
-            this.placementTime = System.currentTimeMillis();
+        if (this.placementTime == 0 && level != null) {
+            this.placementTime = level.getGameTime();
         }
     }
 
@@ -72,7 +78,6 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
         tag.putString("RedstoneMode", this.redstoneMode.getSerializedName());
         tag.putInt("Priority", this.priority);
         tag.putLong("PlacementTime", this.placementTime);
-        tag.putBoolean("AutoExport", this.autoExport);
 
         CompoundTag invTag = new CompoundTag();
         for (int i = 0; i < this.inventory.getContainerSize(); i++) {
@@ -87,10 +92,18 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
     @Override
     public void loadTag(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries) {
         super.loadTag(tag, registries);
-        this.redstoneMode = RedstoneMode.valueOf(tag.getString("RedstoneMode").toUpperCase());
-        this.priority = tag.getInt("Priority");
+
+        String modeStr = tag.getString("RedstoneMode");
+        if (!modeStr.isEmpty()) {
+            try {
+                this.redstoneMode = RedstoneMode.valueOf(modeStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                this.redstoneMode = RedstoneMode.IGNORE;
+            }
+        }
+
+        this.priority = clampPriority(tag.getInt("Priority"));
         this.placementTime = tag.getLong("PlacementTime");
-        this.autoExport = tag.getBoolean("AutoExport");
 
         if (tag.contains("Inventory")) {
             CompoundTag invTag = tag.getCompound("Inventory");
@@ -105,12 +118,28 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
         }
     }
 
+    public static int clampPriority(int value) {
+        return Math.max(PRIORITY_MIN, Math.min(PRIORITY_MAX, value));
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        if (this.level != null && !this.level.isClientSide) {
+            this.updateRedstoneState(this.level.hasNeighborSignal(this.worldPosition));
+        }
+    }
+
     public void updateRedstoneState(boolean hasSignal) {
         this.hasRedstoneSignal = hasSignal;
         updateAutoExportState();
     }
 
     private void updateAutoExportState() {
+        if (!isConnectedToNetwork()) {
+            this.autoExport = false;
+            return;
+        }
         boolean shouldExport = this.redstoneMode.shouldExport(this.hasRedstoneSignal);
         if (shouldExport != this.autoExport) {
             this.autoExport = shouldExport;
@@ -118,6 +147,10 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
                 tryExportResults();
             }
         }
+    }
+
+    public boolean isConnectedToNetwork() {
+        return this.getMainNode().getGrid() != null;
     }
 
     public RedstoneMode getRedstoneMode() {
@@ -135,7 +168,7 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
     }
 
     public void setPriority(int priority) {
-        this.priority = priority;
+        this.priority = clampPriority(priority);
         this.setChanged();
     }
 
@@ -155,6 +188,16 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
         return this.inventory.getItem(INVENTORY_SIZE + slot);
     }
 
+    public boolean hasInputSpace() {
+        for (int i = 0; i < INPUT_SLOTS; i++) {
+            ItemStack stack = this.inventory.getItem(i);
+            if (stack.isEmpty() || stack.getCount() < stack.getMaxStackSize()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public @NotNull Component getDisplayName() {
         return Component.translatable("block.bettermolecularassembler.better_molecular_assembler");
@@ -171,24 +214,53 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
         return AECableType.SMART;
     }
 
-    // ICraftingMachine implementation
-
     @Override
     public boolean pushPattern(@NotNull IPatternDetails patternDetails, @NotNull KeyCounter[] inputHolder, @NotNull Direction where) {
         if (this.isCrafting || this.level == null) {
             return false;
         }
 
+        List<Integer> populatedSlots = new ArrayList<>();
+        int slotIndex = 0;
+
+        for (int i = 0; i < inputHolder.length && slotIndex < INPUT_SLOTS; i++) {
+            KeyCounter counter = inputHolder[i];
+            for (var entry : counter) {
+                if (!(entry.getKey() instanceof AEItemKey itemKey)) continue;
+                int amount = (int) entry.getLongValue();
+                if (amount <= 0) continue;
+
+                ItemStack toPlace = itemKey.toStack(amount);
+
+                while (!toPlace.isEmpty() && slotIndex < INPUT_SLOTS) {
+                    ItemStack existing = this.inventory.getItem(slotIndex);
+                    if (existing.isEmpty()) {
+                        this.inventory.setItem(slotIndex, toPlace.copy());
+                        populatedSlots.add(slotIndex);
+                        toPlace = ItemStack.EMPTY;
+                    } else if (ItemStack.isSameItemSameComponents(existing, toPlace) && existing.getCount() < existing.getMaxStackSize()) {
+                        int canAdd = Math.min(toPlace.getCount(), existing.getMaxStackSize() - existing.getCount());
+                        existing.grow(canAdd);
+                        toPlace.shrink(canAdd);
+                        if (!populatedSlots.contains(slotIndex)) {
+                            populatedSlots.add(slotIndex);
+                        }
+                    }
+                    if (!toPlace.isEmpty()) {
+                        slotIndex++;
+                    }
+                }
+            }
+        }
+
+        if (populatedSlots.isEmpty()) {
+            return false;
+        }
+
         this.isCrafting = true;
         this.craftingProgress = 0;
-        this.craftingTotalTime = 40;
-        this.craftingResult = ItemStack.EMPTY;
-
-        var inputs = patternDetails.getInputs();
-        this.craftingInputs = new int[inputs.length];
-        for (int i = 0; i < inputs.length && i < INVENTORY_SIZE / 2; i++) {
-            craftingInputs[i] = i;
-        }
+        this.craftingTotalTime = CRAFTING_TIME;
+        this.craftingInputs = populatedSlots.stream().mapToInt(Integer::intValue).toArray();
 
         List<GenericStack> outputs = patternDetails.getOutputs();
         if (!outputs.isEmpty()) {
@@ -196,8 +268,11 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
             if (outKey instanceof AEItemKey itemKey) {
                 this.craftingResult = itemKey.toStack((int) outputs.get(0).amount());
             }
+        } else {
+            this.craftingResult = ItemStack.EMPTY;
         }
 
+        this.level.setBlock(this.worldPosition, this.getBlockState().setValue(BetterMABlock.LIT, true), 3);
         this.setChanged();
         return true;
     }
@@ -209,10 +284,9 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
 
     @Override
     public @NotNull appeng.api.implementations.blockentities.PatternContainerGroup getCraftingMachineInfo() {
-        var stack = BetterMolecularAssemblerMod.BETTER_MOLECULAR_ASSEMBLER_ITEM.toStack();
-        var key = appeng.api.stacks.AEItemKey.of(stack);
+        var key = AEItemKey.of(BetterMolecularAssemblerMod.BETTER_MOLECULAR_ASSEMBLER_ITEM.get());
         return new appeng.api.implementations.blockentities.PatternContainerGroup(
-                key != null ? key : appeng.api.stacks.AEItemKey.of(stack),
+                key,
                 this.getDisplayName(),
                 java.util.List.of()
         );
@@ -226,6 +300,10 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
             }
         }
 
+        if (!be.craftingResult.isEmpty() && !be.isCrafting) {
+            be.tryPlaceCraftingResult();
+        }
+
         if (be.autoExport) {
             be.tryExportResults();
         }
@@ -235,24 +313,10 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
         this.isCrafting = false;
         this.craftingProgress = 0;
 
-        if (!this.craftingResult.isEmpty()) {
-            ItemStack remaining = this.craftingResult.copy();
-            for (int i = INVENTORY_SIZE / 2; i < INVENTORY_SIZE && !remaining.isEmpty(); i++) {
-                ItemStack existing = this.inventory.getItem(i);
-                if (existing.isEmpty()) {
-                    this.inventory.setItem(i, remaining.copy());
-                    remaining = ItemStack.EMPTY;
-                } else if (ItemStack.isSameItemSameComponents(existing, remaining) && existing.getCount() < existing.getMaxStackSize()) {
-                    int canAdd = Math.min(remaining.getCount(), existing.getMaxStackSize() - existing.getCount());
-                    existing.grow(canAdd);
-                    remaining.shrink(canAdd);
-                }
-            }
-            this.craftingResult = remaining;
-        }
+        tryPlaceCraftingResult();
 
         for (int idx : this.craftingInputs) {
-            if (idx >= 0 && idx < INVENTORY_SIZE / 2) {
+            if (idx >= 0 && idx < INPUT_SLOTS) {
                 this.inventory.setItem(idx, ItemStack.EMPTY);
             }
         }
@@ -264,25 +328,51 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
         }
     }
 
+    private void tryPlaceCraftingResult() {
+        if (this.craftingResult.isEmpty()) return;
+
+        ItemStack remaining = this.craftingResult.copy();
+        for (int i = OUTPUT_SLOTS_START; i < INVENTORY_SIZE && !remaining.isEmpty(); i++) {
+            ItemStack existing = this.inventory.getItem(i);
+            if (existing.isEmpty()) {
+                this.inventory.setItem(i, remaining.copy());
+                remaining = ItemStack.EMPTY;
+            } else if (ItemStack.isSameItemSameComponents(existing, remaining) && existing.getCount() < existing.getMaxStackSize()) {
+                int canAdd = Math.min(remaining.getCount(), existing.getMaxStackSize() - existing.getCount());
+                existing.grow(canAdd);
+                remaining.shrink(canAdd);
+            }
+        }
+        this.craftingResult = remaining;
+        if (remaining.isEmpty()) {
+            this.setChanged();
+        }
+    }
+
     private void tryExportResults() {
         if (this.level == null || this.level.isClientSide) return;
+        if (!isConnectedToNetwork()) return;
 
         var grid = this.getMainNode().getGrid();
         if (grid == null) return;
 
         var storage = grid.getStorageService().getInventory();
         var src = new MachineSource(this);
+        int rateLimit = BetterMAConfig.getExportRateLimit();
+        int totalExported = 0;
 
-        for (int i = INVENTORY_SIZE / 2; i < INVENTORY_SIZE; i++) {
+        for (int i = OUTPUT_SLOTS_START; i < INVENTORY_SIZE && totalExported < rateLimit; i++) {
             ItemStack stack = this.inventory.getItem(i);
             if (stack.isEmpty()) continue;
 
             AEItemKey key = AEItemKey.of(stack);
             if (key == null) continue;
 
-            long inserted = storage.insert(key, stack.getCount(), Actionable.MODULATE, src);
+            int toExport = Math.min(stack.getCount(), rateLimit - totalExported);
+            long inserted = storage.insert(key, toExport, Actionable.MODULATE, src);
             if (inserted > 0) {
                 stack.shrink((int) inserted);
+                totalExported += (int) inserted;
                 if (stack.isEmpty()) {
                     this.inventory.setItem(i, ItemStack.EMPTY);
                 }
@@ -291,12 +381,13 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
         }
     }
 
-    public boolean acceptTrashItems(ItemStack stack) {
-        if (this.level == null || this.level.isClientSide) return false;
-        if (this.getMainNode().getGrid() == null) return false;
+    public int acceptTrashItems(ItemStack stack) {
+        if (this.level == null || this.level.isClientSide) return 0;
+        if (!isConnectedToNetwork()) return 0;
 
+        int originalCount = stack.getCount();
         ItemStack remaining = stack.copy();
-        for (int i = 0; i < INVENTORY_SIZE / 2 && !remaining.isEmpty(); i++) {
+        for (int i = 0; i < INPUT_SLOTS && !remaining.isEmpty(); i++) {
             ItemStack existing = this.inventory.getItem(i);
             if (existing.isEmpty()) {
                 this.inventory.setItem(i, remaining.copy());
@@ -308,11 +399,12 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
             }
         }
 
-        if (remaining.getCount() < stack.getCount()) {
+        int accepted = originalCount - remaining.getCount();
+        if (accepted > 0) {
             this.setChanged();
-            return true;
+            return accepted;
         }
-        return false;
+        return 0;
     }
 
     public boolean isCrafting() {

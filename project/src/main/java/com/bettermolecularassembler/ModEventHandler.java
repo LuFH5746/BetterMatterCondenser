@@ -1,14 +1,12 @@
 package com.bettermolecularassembler;
 
-import com.bettermolecularassembler.block.BetterMABlockEntity;
 import com.bettermolecularassembler.screen.BetterMAScreen;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
@@ -25,8 +23,8 @@ public class ModEventHandler {
     }
 
     @SubscribeEvent
-    public static void onClientSetup(FMLClientSetupEvent event) {
-        MenuScreens.register(BetterMolecularAssemblerMod.BETTER_MOLECULAR_ASSEMBLER_MENU.get(), BetterMAScreen::new);
+    public static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
+        event.register(BetterMolecularAssemblerMod.BETTER_MOLECULAR_ASSEMBLER_MENU.get(), BetterMAScreen::new);
     }
 
     @SubscribeEvent

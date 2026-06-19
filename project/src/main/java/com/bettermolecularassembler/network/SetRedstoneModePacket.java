@@ -1,6 +1,7 @@
 package com.bettermolecularassembler.network;
 
 import com.bettermolecularassembler.BetterMolecularAssemblerMod;
+import com.bettermolecularassembler.block.BetterMABlockEntity;
 import com.bettermolecularassembler.block.RedstoneMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -32,8 +33,9 @@ public record SetRedstoneModePacket(BlockPos pos, RedstoneMode mode) implements 
     public static void handle(SetRedstoneModePacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer serverPlayer) {
+                if (serverPlayer.distanceToSqr(packet.pos.getCenter()) > 64) return;
                 BlockEntity be = serverPlayer.serverLevel().getBlockEntity(packet.pos);
-                if (be instanceof com.bettermolecularassembler.block.BetterMABlockEntity ma) {
+                if (be instanceof BetterMABlockEntity ma) {
                     ma.setRedstoneMode(packet.mode);
                 }
             }

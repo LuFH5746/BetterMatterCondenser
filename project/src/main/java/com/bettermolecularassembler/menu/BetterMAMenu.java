@@ -1,5 +1,6 @@
 package com.bettermolecularassembler.menu;
 
+import appeng.core.definitions.AEItems;
 import com.bettermolecularassembler.BetterMolecularAssemblerMod;
 import com.bettermolecularassembler.block.BetterMABlockEntity;
 import net.minecraft.core.BlockPos;
@@ -9,6 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 
 public class BetterMAMenu extends AbstractContainerMenu {
@@ -21,6 +23,8 @@ public class BetterMAMenu extends AbstractContainerMenu {
     public BetterMAMenu(int id, Inventory playerInventory, BetterMABlockEntity blockEntity) {
         super(BetterMolecularAssemblerMod.BETTER_MOLECULAR_ASSEMBLER_MENU.get(), id);
         this.blockEntity = blockEntity;
+
+        if (blockEntity == null) return;
 
         // Input slots (0-8)
         for (int row = 0; row < 3; row++) {
@@ -111,7 +115,9 @@ public class BetterMAMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            return stack.getItem().getDescriptionId().contains("pattern");
+            return stack.is(AEItems.BLANK_PATTERN.asItem())
+                    || stack.is(AEItems.PROCESSING_PATTERN.asItem())
+                    || stack.is(AEItems.CRAFTING_PATTERN.asItem());
         }
     }
 }
