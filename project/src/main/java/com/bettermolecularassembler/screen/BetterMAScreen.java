@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class BetterMAScreen extends AbstractContainerScreen<BetterMAMenu> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
-            BetterMolecularAssemblerMod.MOD_ID, "textures/gui/better_molecular_assembler.png"
+            BetterMolecularAssemblerMod.MOD_ID, "textures/gui/molecular_assembler.png"
     );
 
     private EditBox priorityField;
