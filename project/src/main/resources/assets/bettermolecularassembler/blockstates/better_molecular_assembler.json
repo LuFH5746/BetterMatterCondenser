@@ -1,12 +1,7 @@
 {
   "variants": {
-    "facing=north,lit=false": { "model": "bettermolecularassembler:block/better_molecular_assembler" },
-    "facing=south,lit=false": { "model": "bettermolecularassembler:block/better_molecular_assembler", "y": 180 },
-    "facing=west,lit=false":  { "model": "bettermolecularassembler:block/better_molecular_assembler", "y": 270 },
-    "facing=east,lit=false":  { "model": "bettermolecularassembler:block/better_molecular_assembler", "y": 90 },
-    "facing=north,lit=true":  { "model": "bettermolecularassembler:block/better_molecular_assembler_lit" },
-    "facing=south,lit=true":  { "model": "bettermolecularassembler:block/better_molecular_assembler_lit", "y": 180 },
-    "facing=west,lit=true":   { "model": "bettermolecularassembler:block/better_molecular_assembler_lit", "y": 270 },
-    "facing=east,lit=true":   { "model": "bettermolecularassembler:block/better_molecular_assembler_lit", "y": 90 }
+    "": {
+      "model": "bettermolecularassembler:block/better_molecular_assembler"
+    }
   }
 }

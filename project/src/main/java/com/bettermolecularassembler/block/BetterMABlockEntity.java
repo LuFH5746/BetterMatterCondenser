@@ -272,7 +272,6 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
             this.craftingResult = ItemStack.EMPTY;
         }
 
-        this.level.setBlock(this.worldPosition, this.getBlockState().setValue(BetterMABlock.LIT, true), 3);
         this.setChanged();
         return true;
     }
@@ -322,10 +321,6 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
         }
         this.craftingInputs = new int[0];
         this.setChanged();
-
-        if (this.level != null) {
-            this.level.setBlock(this.worldPosition, this.getBlockState().setValue(BetterMABlock.LIT, false), 3);
-        }
     }
 
     private void tryPlaceCraftingResult() {

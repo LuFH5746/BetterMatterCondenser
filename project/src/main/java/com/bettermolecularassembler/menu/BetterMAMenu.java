@@ -26,33 +26,28 @@ public class BetterMAMenu extends AbstractContainerMenu {
 
         if (blockEntity == null) return;
 
-        // Input slots (0-8)
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
-                this.addSlot(new Slot(blockEntity.getInventory(), col + row * 3, 26 + col * 18, 17 + row * 18));
+                this.addSlot(new Slot(blockEntity.getInventory(), col + row * 3, 29 + col * 18, 31 + row * 18));
             }
         }
 
-        // Output slots (9-17)
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
-                this.addSlot(new OutputSlot(blockEntity.getInventory(), 9 + col + row * 3, 116 + col * 18, 17 + row * 18));
+                this.addSlot(new OutputSlot(blockEntity.getInventory(), 9 + col + row * 3, 116 + col * 18, 31 + row * 18));
             }
         }
 
-        // Pattern slots (18-20)
         for (int i = 0; i < 3; i++) {
-            this.addSlot(new PatternSlot(blockEntity.getInventory(), 18 + i, 62 + i * 18, 79));
+            this.addSlot(new PatternSlot(blockEntity.getInventory(), 18 + i, 29 + i * 18, 85));
         }
 
-        // Player inventory
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 this.addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 111 + row * 18));
             }
         }
 
-        // Player hotbar
         for (int col = 0; col < 9; col++) {
             this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 169));
         }

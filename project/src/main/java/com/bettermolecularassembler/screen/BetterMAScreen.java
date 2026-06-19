@@ -28,7 +28,7 @@ public class BetterMAScreen extends AbstractContainerScreen<BetterMAMenu> {
     public BetterMAScreen(BetterMAMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.imageWidth = 176;
-        this.imageHeight = 193;
+        this.imageHeight = 199;
         this.inventoryLabelY = this.imageHeight - 94;
     }
 
@@ -39,7 +39,7 @@ public class BetterMAScreen extends AbstractContainerScreen<BetterMAMenu> {
         int left = this.leftPos;
         int top = this.topPos;
 
-        this.priorityField = new EditBox(this.font, left + 7, top + 79, 40, 12,
+        this.priorityField = new EditBox(this.font, left + 7, top + 75, 40, 12,
                 Component.literal("Priority"));
         this.priorityField.setValue(String.valueOf(this.menu.getBlockEntity().getPriority()));
         this.priorityField.setFilter(s -> s.matches("-?\\d*"));
@@ -47,17 +47,17 @@ public class BetterMAScreen extends AbstractContainerScreen<BetterMAMenu> {
         this.addRenderableWidget(this.priorityField);
 
         this.topButton = Button.builder(Component.literal("T"), b -> this.setPriority(BetterMABlockEntity.PRIORITY_MAX))
-                .bounds(left + 49, top + 79, 12, 12).build();
+                .bounds(left + 49, top + 75, 12, 12).build();
         this.addRenderableWidget(this.topButton);
 
         this.bottomButton = Button.builder(Component.literal("B"), b -> this.setPriority(BetterMABlockEntity.PRIORITY_MIN))
-                .bounds(left + 63, top + 79, 12, 12).build();
+                .bounds(left + 63, top + 75, 12, 12).build();
         this.addRenderableWidget(this.bottomButton);
 
         this.redstoneButton = Button.builder(
                 Component.literal(getRedstoneModeLabel(this.menu.getBlockEntity().getRedstoneMode())),
                 b -> this.cycleRedstoneMode()
-        ).bounds(left + 118, top + 79, 50, 12).build();
+        ).bounds(left + 118, top + 75, 50, 12).build();
         this.addRenderableWidget(this.redstoneButton);
     }
 
