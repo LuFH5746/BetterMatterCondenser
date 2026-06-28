@@ -13,14 +13,21 @@ public class BetterMAConfig {
             .comment("Maximum number of items exported to ME network per tick")
             .defineInRange("exportRateLimit", 256, 1, 10000);
 
+    public static final ModConfigSpec.BooleanValue AE2WTLIB_COMPAT = BUILDER
+            .comment("Enable AE2WTLib wireless terminal trash integration")
+            .define("ae2wtlibCompat", true);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     private static int cachedExportRateLimit = 256;
+    private static boolean cachedAE2WTLibCompat = true;
 
     @SubscribeEvent
     public static void onConfigLoad(ModConfigEvent.Loading event) {
         if (event.getConfig().getSpec() == SPEC) {
             cachedExportRateLimit = EXPORT_RATE_LIMIT.get();
+            cachedAE2WTLibCompat = AE2WTLIB_COMPAT.get();
+            com.bettermolecularassembler.compat.AE2WTLibCompat.invalidate();
         }
     }
 
@@ -28,10 +35,16 @@ public class BetterMAConfig {
     public static void onConfigReload(ModConfigEvent.Reloading event) {
         if (event.getConfig().getSpec() == SPEC) {
             cachedExportRateLimit = EXPORT_RATE_LIMIT.get();
+            cachedAE2WTLibCompat = AE2WTLIB_COMPAT.get();
+            com.bettermolecularassembler.compat.AE2WTLibCompat.invalidate();
         }
     }
 
     public static int getExportRateLimit() {
         return cachedExportRateLimit;
+    }
+
+    public static boolean isAE2WTLibCompatEnabled() {
+        return cachedAE2WTLibCompat;
     }
 }

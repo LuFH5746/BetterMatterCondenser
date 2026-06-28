@@ -87,6 +87,7 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
     implementation "appeng:appliedenergistics2:${ae2_version}"
+    compileOnly(files("../resources/reference_mods/libs/ae2wtlib-19.5.0.jar"))
 }
 
 jar {

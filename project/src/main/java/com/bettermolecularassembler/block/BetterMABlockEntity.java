@@ -3,6 +3,7 @@ package com.bettermolecularassembler.block;
 import appeng.api.config.Actionable;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.implementations.blockentities.ICraftingMachine;
+import appeng.api.networking.IGrid;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.GenericStack;
 import appeng.api.stacks.KeyCounter;
@@ -32,8 +33,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraftingMachine, MenuProvider {
+    private static final Set<BetterMABlockEntity> SERVER_ENTITIES = ConcurrentHashMap.newKeySet();
     public static final int INVENTORY_SIZE = 18;
     public static final int PATTERN_SLOTS = 3;
     public static final int INPUT_SLOTS = 9;
@@ -136,8 +140,15 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
     public void onLoad() {
         super.onLoad();
         if (this.level != null && !this.level.isClientSide) {
+            SERVER_ENTITIES.add(this);
             this.updateRedstoneState(this.level.hasNeighborSignal(this.worldPosition));
         }
+    }
+
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        SERVER_ENTITIES.remove(this);
     }
 
     public void updateRedstoneState(boolean hasSignal) {
@@ -388,28 +399,62 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
 
     public int acceptTrashItems(ItemStack stack) {
         if (this.level == null || this.level.isClientSide) return 0;
-        if (!isConnectedToNetwork()) return 0;
+        IGrid grid = this.getMainNode().getGrid();
+        return acceptTrashItems((net.minecraft.server.level.ServerLevel) this.level, stack, grid);
+    }
 
-        int originalCount = stack.getCount();
-        ItemStack remaining = stack.copy();
-        for (int i = 0; i < INPUT_SLOTS && !remaining.isEmpty(); i++) {
-            ItemStack existing = this.inventory.getItem(i);
-            if (existing.isEmpty()) {
-                this.inventory.setItem(i, remaining.copy());
-                remaining = ItemStack.EMPTY;
-            } else if (ItemStack.isSameItemSameComponents(existing, remaining) && existing.getCount() < existing.getMaxStackSize()) {
-                int canAdd = Math.min(remaining.getCount(), existing.getMaxStackSize() - existing.getCount());
-                existing.grow(canAdd);
-                remaining.shrink(canAdd);
+    public static int acceptTrashItems(net.minecraft.server.level.ServerLevel level, ItemStack stack) {
+        return acceptTrashItems(level, stack, null);
+    }
+
+    public static int acceptTrashItems(net.minecraft.server.level.ServerLevel level, ItemStack stack, @Nullable IGrid grid) {
+        if (level == null || stack.isEmpty()) return 0;
+
+        List<BetterMABlockEntity> candidates = new ArrayList<>();
+        for (BetterMABlockEntity ma : SERVER_ENTITIES) {
+            if (ma.level != level || !ma.isConnectedToNetwork()) continue;
+            if (grid == null || ma.getMainNode().getGrid() == grid) {
+                candidates.add(ma);
             }
         }
 
-        int accepted = originalCount - remaining.getCount();
+        if (candidates.isEmpty()) return 0;
+
+        candidates.sort(Comparator
+                .comparingInt(BetterMABlockEntity::getPriority).reversed()
+                .thenComparingLong(BetterMABlockEntity::getPlacementTime).reversed());
+
+        int remainingCount = stack.getCount();
+        for (BetterMABlockEntity ma : candidates) {
+            if (!ma.hasInputSpace()) continue;
+            ItemStack toInsert = stack.copy();
+            toInsert.setCount(remainingCount);
+            int accepted = ma.insertIntoInputSlots(toInsert);
+            remainingCount -= accepted;
+            if (remainingCount <= 0) break;
+        }
+
+        return stack.getCount() - remainingCount;
+    }
+
+    private int insertIntoInputSlots(ItemStack stack) {
+        int originalCount = stack.getCount();
+        for (int i = 0; i < INPUT_SLOTS && !stack.isEmpty(); i++) {
+            ItemStack existing = this.inventory.getItem(i);
+            if (existing.isEmpty()) {
+                this.inventory.setItem(i, stack.copy());
+                stack = ItemStack.EMPTY;
+            } else if (ItemStack.isSameItemSameComponents(existing, stack) && existing.getCount() < existing.getMaxStackSize()) {
+                int canAdd = Math.min(stack.getCount(), existing.getMaxStackSize() - existing.getCount());
+                existing.grow(canAdd);
+                stack.shrink(canAdd);
+            }
+        }
+        int accepted = originalCount - stack.getCount();
         if (accepted > 0) {
             this.setChanged();
-            return accepted;
         }
-        return 0;
+        return accepted;
     }
 
     public boolean isCrafting() {

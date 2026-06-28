@@ -52,7 +52,7 @@ ABA
 
 - AE2 原版无线终端（`MEStorageMenu`）
 - AE2WTLib 无线合成终端：继承 `CraftingTermMenu`（最终继承 `MEStorageMenu`），主界面的垃圾桶按钮调用 `putCarriedItemIntoNetwork`，已被当前 Mixin 覆盖
-- AE2WTLib 独立垃圾桶（`TrashMenu`）：使用 `WCTMenuHost.trash` 物品栏，不经过 `MEStorageMenu.putCarriedItemIntoNetwork`，暂不支持
+- AE2WTLib 独立垃圾桶（`TrashMenu`）：使用反射访问 `WCTMenuHost.trash` 物品栏，在服务器 tick 中将物品转移至同网络聚合器
 - 其他模组终端：待调查
 
 ### 规则
@@ -169,6 +169,7 @@ ABA
 | 配置项 | 类型 | 默认值 | 范围 | 说明 |
 |--------|------|--------|------|------|
 | `exportRateLimit` | int | 256 | 1 ~ 10000 | 每 tick 导出物品数量上限 |
+| `ae2wtlibCompat` | boolean | true | true / false | 是否启用 AE2WTLib 垃圾桶兼容 |
 
 配置文件路径：`config/bettermolecularassembler-common.toml`
 
@@ -199,6 +200,6 @@ ABA
 
 ## 待完成
 
-- [ ] 禁用原版 AE2 分子装配室配方
-- [ ] 调查非 AE2 终端的 Mixin 支持
+- [x] 禁用原版 AE2 分子装配室配方
+- [x] 调查非 AE2 终端的 Mixin 支持（AE2WTLib 独立垃圾桶已通过反射支持）
 - [ ] 测试与调试

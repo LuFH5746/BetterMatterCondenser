@@ -2,10 +2,14 @@ package com.bettermolecularassembler;
 
 import com.bettermolecularassembler.block.BetterMABlock;
 import com.bettermolecularassembler.block.BetterMABlockEntity;
+import com.bettermolecularassembler.compat.AE2WTLibCompat;
 import com.bettermolecularassembler.menu.BetterMAMenu;
 import com.bettermolecularassembler.network.SetPriorityPacket;
 import com.bettermolecularassembler.network.SetRedstoneModePacket;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerLevel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
@@ -14,6 +18,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -24,6 +29,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 @Mod(BetterMolecularAssemblerMod.MOD_ID)
 public class BetterMolecularAssemblerMod {
     public static final String MOD_ID = "bettermolecularassembler";
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MOD_ID);
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MOD_ID);
@@ -61,6 +67,13 @@ public class BetterMolecularAssemblerMod {
         modContainer.registerConfig(ModConfig.Type.COMMON, BetterMAConfig.SPEC);
 
         modEventBus.addListener(BetterMolecularAssemblerMod::registerPackets);
+        NeoForge.EVENT_BUS.addListener(BetterMolecularAssemblerMod::registerServerTick);
+    }
+
+    private static void registerServerTick(final net.neoforged.neoforge.event.tick.LevelTickEvent.Post event) {
+        if (event.getLevel() instanceof ServerLevel serverLevel) {
+            AE2WTLibCompat.onServerTick(serverLevel);
+        }
     }
 
     private static void registerPackets(final RegisterPayloadHandlersEvent event) {
