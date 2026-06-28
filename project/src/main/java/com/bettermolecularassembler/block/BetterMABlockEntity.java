@@ -30,14 +30,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraftingMachine, MenuProvider {
     public static final int INVENTORY_SIZE = 18;
     public static final int PATTERN_SLOTS = 3;
-    private static final int INPUT_SLOTS = INVENTORY_SIZE / 2; // 0-8
-    private static final int OUTPUT_SLOTS_START = INVENTORY_SIZE / 2; // 9-17
-    private static final int CRAFTING_TIME = 40;
+    public static final int INPUT_SLOTS = 9;
+    public static final int OUTPUT_SLOTS_START = 9;
+    public static final int CRAFTING_TIME = 40;
     public static final int PRIORITY_MIN = -999;
     public static final int PRIORITY_MAX = 999;
 
@@ -45,6 +46,15 @@ public class BetterMABlockEntity extends AENetworkedBlockEntity implements ICraf
         @Override
         public void setChanged() {
             BetterMABlockEntity.this.setChanged();
+        }
+
+        @Override
+        public boolean stillValid(@NotNull Player player) {
+            if (BetterMABlockEntity.this.level == null) return false;
+            if (BetterMABlockEntity.this.level.getBlockEntity(BetterMABlockEntity.this.worldPosition) != BetterMABlockEntity.this) {
+                return false;
+            }
+            return player.distanceToSqr(BetterMABlockEntity.this.worldPosition.getCenter()) <= 64;
         }
     };
 
