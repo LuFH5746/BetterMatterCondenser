@@ -1,0 +1,5 @@
+fix: 修复 mods.toml 占位符未替换导致的启动崩溃
+
+- 在 build.gradle 中添加 processResources 配置
+- 对 META-INF/neoforge.mods.toml 执行 expand，替换 ${mod_id} 等占位符
+- 编译产物已更新到 resources/results

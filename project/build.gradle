@@ -85,6 +85,27 @@ neoForge {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+tasks.withType(ProcessResources).configureEach {
+    var replaceProperties = [
+            mod_id: mod_id,
+            mod_name: mod_name,
+            mod_license: mod_license,
+            mod_version: mod_version,
+            mod_group_id: mod_group_id,
+            mod_authors: mod_authors,
+            mod_description: mod_description,
+            minecraft_version: minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neoforge_version: neoforge_version,
+            neoforge_version_range: neoforge_version_range,
+            loader_version_range: loader_version_range
+    ]
+    inputs.properties replaceProperties
+    filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
+        expand replaceProperties
+    }
+}
+
 dependencies {
     implementation(files("../resources/test_env/[应用能源2] appliedenergistics2-19.2.17.jar"))
     compileOnly(files("../resources/test_env/[AE2无线终端] ae2wtlib-19.5.0.jar"))
