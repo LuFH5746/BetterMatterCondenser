@@ -3,6 +3,7 @@ package com.bettermolecularassembler;
 import com.bettermolecularassembler.block.BetterMABlock;
 import com.bettermolecularassembler.block.BetterMABlockEntity;
 import com.bettermolecularassembler.compat.AE2WTLibCompat;
+import com.bettermolecularassembler.compat.GuideMeCompat;
 import com.bettermolecularassembler.menu.BetterMAMenu;
 import com.bettermolecularassembler.network.SetPriorityPacket;
 import com.bettermolecularassembler.network.SetRedstoneModePacket;
@@ -68,6 +69,8 @@ public class BetterMolecularAssemblerMod {
 
         modEventBus.addListener(BetterMolecularAssemblerMod::registerPackets);
         NeoForge.EVENT_BUS.addListener(BetterMolecularAssemblerMod::registerServerTick);
+
+        GuideMeCompat.init();
     }
 
     private static void registerServerTick(final net.neoforged.neoforge.event.tick.LevelTickEvent.Post event) {

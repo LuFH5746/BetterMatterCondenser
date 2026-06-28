@@ -86,8 +86,9 @@ neoForge {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
-    implementation "appeng:appliedenergistics2:${ae2_version}"
-    compileOnly(files("../resources/reference_mods/libs/ae2wtlib-19.5.0.jar"))
+    implementation(files("../resources/test_env/[应用能源2] appliedenergistics2-19.2.17.jar"))
+    compileOnly(files("../resources/test_env/[AE2无线终端] ae2wtlib-19.5.0.jar"))
+    compileOnly(files("../resources/test_env/guideme-21.1.16.jar"))
 }
 
 jar {

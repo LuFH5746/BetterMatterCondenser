@@ -1,0 +1,8 @@
+chore: 对齐测试环境版本并添加 GuideMe 占位指南
+
+- AE2 依赖升级到 19.2.17，mods.toml 同步调整版本范围
+- build.gradle 改用 test_env 本地 jar 依赖，避免网络下载失败
+- 移除 gradle.properties 中失效的代理配置
+- 新增 GuideMeCompat 反射注册指南（可选依赖）
+- 创建 assets/bettermolecularassembler/guide/index.md 占位页
+- 编译产物已复制到 resources/results
