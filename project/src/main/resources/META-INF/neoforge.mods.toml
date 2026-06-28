@@ -1,10 +1,10 @@
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
-issueTrackerURL="https://github.com/bettermolecularassembler/issues"
+issueTrackerURL="https://github.com/bettermattercondenser/issues"
 
 [[mixins]]
-config="mixins.bettermolecularassembler.json"
+config="mixins.bettermattercondenser.json"
 
 [[mods]]
 modId="${mod_id}"

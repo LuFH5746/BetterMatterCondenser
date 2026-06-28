@@ -1,0 +1,18 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.bettermattercondenser.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "CondenserBlockMixin",
+    "MEStorageMenuMixin",
+    "appeng.blockentity.misc.CondenserBlockEntityMixin",
+    "appeng.menu.implementations.CondenserMenuMixin"
+  ],
+  "client": [
+    "appeng.client.gui.implementations.CondenserScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

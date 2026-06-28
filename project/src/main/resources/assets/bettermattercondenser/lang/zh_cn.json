@@ -1,0 +1,7 @@
+{
+  "gui.bettermattercondenser.priority": "优先级: %d",
+  "gui.bettermattercondenser.priority.top": "置顶",
+  "gui.bettermattercondenser.priority.bottom": "置底",
+  "gui.bettermattercondenser.redstone_mode": "红石: %s",
+  "gui.bettermattercondenser.redstone_mode.tooltip": "红石模式: %s"
+}

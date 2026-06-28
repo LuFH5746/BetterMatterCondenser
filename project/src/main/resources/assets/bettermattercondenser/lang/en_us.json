@@ -1,0 +1,7 @@
+{
+  "gui.bettermattercondenser.priority": "Priority: %d",
+  "gui.bettermattercondenser.priority.top": "Top",
+  "gui.bettermattercondenser.priority.bottom": "Btm",
+  "gui.bettermattercondenser.redstone_mode": "Redstone: %s",
+  "gui.bettermattercondenser.redstone_mode.tooltip": "Redstone Mode: %s"
+}

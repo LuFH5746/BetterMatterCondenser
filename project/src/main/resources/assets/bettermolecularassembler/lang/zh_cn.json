@@ -1,7 +1,0 @@
-{
-  "block.bettermolecularassembler.better_molecular_assembler": "更好的物质聚合器",
-  "item.bettermolecularassembler.better_molecular_assembler": "更好的物质聚合器",
-  "gui.bettermolecularassembler.priority": "优先级: %d",
-  "gui.bettermolecularassembler.redstone_mode": "红石: %s",
-  "gui.bettermolecularassembler.redstone_mode.tooltip": "红石模式: %s"
-}

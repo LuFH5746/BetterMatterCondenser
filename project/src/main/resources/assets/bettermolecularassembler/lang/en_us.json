@@ -1,7 +1,0 @@
-{
-  "block.bettermolecularassembler.better_molecular_assembler": "Better Molecular Assembler",
-  "item.bettermolecularassembler.better_molecular_assembler": "Better Molecular Assembler",
-  "gui.bettermolecularassembler.priority": "Priority: %d",
-  "gui.bettermolecularassembler.redstone_mode": "Redstone: %s",
-  "gui.bettermolecularassembler.redstone_mode.tooltip": "Redstone Mode: %s"
-}
