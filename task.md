@@ -51,6 +51,8 @@ ABA
 ### 支持的终端
 
 - AE2 原版无线终端（`MEStorageMenu`）
+- AE2WTLib 无线合成终端：继承 `CraftingTermMenu`（最终继承 `MEStorageMenu`），主界面的垃圾桶按钮调用 `putCarriedItemIntoNetwork`，已被当前 Mixin 覆盖
+- AE2WTLib 独立垃圾桶（`TrashMenu`）：使用 `WCTMenuHost.trash` 物品栏，不经过 `MEStorageMenu.putCarriedItemIntoNetwork`，暂不支持
 - 其他模组终端：待调查
 
 ### 规则
