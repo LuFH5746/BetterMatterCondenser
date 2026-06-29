@@ -38,7 +38,7 @@ public class BetterMatterCondenserMod {
 
     private static void onLevelTick(final net.neoforged.neoforge.event.tick.LevelTickEvent.Post event) {
         if (event.getLevel() instanceof ServerLevel serverLevel) {
-            appeng.blockentity.misc.CondenserBlockEntityMixin.bmc$tickAll(serverLevel);
+            CondenserLogic.tickAll(serverLevel);
             AE2WTLibCompat.onServerTick(serverLevel);
         }
     }

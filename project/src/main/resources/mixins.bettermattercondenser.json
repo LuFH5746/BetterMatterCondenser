@@ -5,12 +5,13 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "CondenserBlockMixin",
-    "MEStorageMenuMixin",
-    "appeng.blockentity.misc.CondenserBlockEntityMixin",
-    "appeng.menu.implementations.CondenserMenuMixin"
+    "CondenserBlockEntityMixin",
+    "CondenserBlockEntityInvoker",
+    "CondenserMenuMixin",
+    "MEStorageMenuMixin"
   ],
   "client": [
-    "appeng.client.gui.implementations.CondenserScreenMixin"
+    "CondenserScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

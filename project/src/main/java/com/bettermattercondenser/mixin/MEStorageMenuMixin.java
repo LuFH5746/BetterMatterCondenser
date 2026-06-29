@@ -2,8 +2,8 @@ package com.bettermattercondenser.mixin;
 
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridNode;
-import appeng.blockentity.misc.CondenserBlockEntityMixin;
 import appeng.menu.me.common.MEStorageMenu;
+import com.bettermattercondenser.CondenserLogic;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -46,7 +46,7 @@ public abstract class MEStorageMenuMixin {
         ItemStack toInsert = carried.copy();
         toInsert.setCount(insertCount);
 
-        int accepted = CondenserBlockEntityMixin.bmc$acceptTrashItems((ServerLevel) player.level(), toInsert, grid);
+        int accepted = CondenserLogic.acceptTrashItems((ServerLevel) player.level(), toInsert, grid);
         if (accepted > 0) {
             carried.shrink(accepted);
             setCarried(carried.isEmpty() ? ItemStack.EMPTY : carried);

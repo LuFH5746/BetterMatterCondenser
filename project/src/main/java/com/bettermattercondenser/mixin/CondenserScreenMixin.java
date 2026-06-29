@@ -1,5 +1,6 @@
-package appeng.client.gui.implementations;
+package com.bettermattercondenser.mixin;
 
+import appeng.client.gui.implementations.CondenserScreen;
 import appeng.menu.implementations.CondenserMenu;
 import com.bettermattercondenser.RedstoneMode;
 import com.bettermattercondenser.mixin.CondenserMenuMixinAccessor;

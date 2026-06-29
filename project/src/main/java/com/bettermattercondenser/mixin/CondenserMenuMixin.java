@@ -1,7 +1,8 @@
-package appeng.menu.implementations;
+package com.bettermattercondenser.mixin;
 
 import appeng.blockentity.misc.CondenserBlockEntity;
 import appeng.menu.guisync.GuiSync;
+import appeng.menu.implementations.CondenserMenu;
 import com.bettermattercondenser.mixin.CondenserBlockEntityMixinAccessor;
 import com.bettermattercondenser.mixin.CondenserMenuMixinAccessor;
 import org.spongepowered.asm.mixin.Mixin;

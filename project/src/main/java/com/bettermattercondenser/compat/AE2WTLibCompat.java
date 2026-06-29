@@ -1,9 +1,9 @@
 package com.bettermattercondenser.compat;
 
 import appeng.api.networking.IGrid;
-import appeng.blockentity.misc.CondenserBlockEntityMixin;
 import com.bettermattercondenser.BMCConfig;
 import com.bettermattercondenser.BetterMatterCondenserMod;
+import com.bettermattercondenser.CondenserLogic;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -99,7 +99,7 @@ public class AE2WTLibCompat {
                 ItemStack stack = (ItemStack) getStackInSlotMethod.invoke(trash, i);
                 if (stack.isEmpty()) continue;
 
-                int accepted = CondenserBlockEntityMixin.bmc$acceptTrashItems(player.serverLevel(), stack, grid);
+                int accepted = CondenserLogic.acceptTrashItems(player.serverLevel(), stack, grid);
                 if (accepted > 0) {
                     stack.shrink(accepted);
                     setItemDirectMethod.invoke(trash, i, stack);
